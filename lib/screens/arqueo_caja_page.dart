@@ -1,3 +1,4 @@
+import 'package:control_caja1/widgets/calculadora_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -38,86 +39,139 @@ class _ArqueoCajaPageState extends State<ArqueoCajaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Arqueo de Caja')),
+      backgroundColor: const Color.fromARGB(255, 206, 255, 231),
+      appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 151, 255, 154),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+             Text(
+              'ARQUEO DE CAJA',
+              style: TextStyle(color: Colors.black,
+              fontWeight: FontWeight.bold,
+                ),
+            ),
+            SizedBox(width: 30),
+            Image.asset(
+              'assets/davicho_negro.png',
+              height: 50,
+            ),
+           
+          ],
+        ),
+        centerTitle: true,  
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
+
+        child: Column(
           children: [
-            ...arqueo.billetes.keys.map((denominacion) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Expanded(flex: 3, child: Text('$denominacion Gs')),
-                    SizedBox(
-                      width: 80,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) {
-                          setState(() {
-                            arqueo.billetes[denominacion] =
-                                int.tryParse(val) ?? 0;
-                          });
-                        },
-                        decoration: InputDecoration(labelText: 'Cant.'),
+            Expanded(
+              child: ListView(
+                children: [
+                  ...arqueo.billetes.keys.map((denominacion) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 3, child: Text('$denominacion Gs')),
+                          SizedBox(
+                            width: 80,
+                            child: TextField(
+                              keyboardType: TextInputType.number,
+                              onChanged: (val) {
+                                setState(() {
+                                  arqueo.billetes[denominacion] =
+                                      int.tryParse(val) ?? 0;
+                                });
+                              },
+                              decoration: InputDecoration(labelText: 'Cant.'),
+                            ),
+                          ),
+                          Spacer(),
+                          Text(
+                            'Gs. ${denominacion * (arqueo.billetes[denominacion] ?? 0)}',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
+                    );
+                  }),
+                  Divider(),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Total de Transferencia',
                     ),
-                    Spacer(),
-                    Text(
-                      'Gs. ${denominacion * (arqueo.billetes[denominacion] ?? 0)}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    onChanged: (val) {
+                      setState(() {
+                        arqueo.transferencia = int.tryParse(val) ?? 0;
+                      });
+                    },
+                  ),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Total de Tarjeta'),
+                    onChanged: (val) {
+                      setState(() {
+                        arqueo.tarjeta = int.tryParse(val) ?? 0;
+                      });
+                    },
+                  ),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Caja Inicial'),
+                    onChanged: (val) {
+                      setState(() {
+                        arqueo.cajaInicial = int.tryParse(val) ?? 0;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  Text('Total de Efectivo: ${arqueo.totalEfectivo} Gs'),
+                  Text('Total de Ventas del Día: ${arqueo.totalVentas} Gs'),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _generarYGuardarPDF();
+                    },
+                    child: Text('Guardar como PDF'),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: _compartirPorWhatsApp,
+                    child: Text('Compartir por WhatsApp'),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _guardarComoTXT();
+                    },
+                    child: Text('Guardar como TXT'),
+                  ),
+                ],
+              ),
+            ),
+            //CALCULADORA 
+            FloatingActionButton(
+              backgroundColor: const Color.fromARGB(255, 135, 202, 108),
+              child: Icon(Icons.calculate),
+              onPressed: () {
+                showModalBottomSheet(
+                  backgroundColor: Colors.green,
+                  context: context,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(25.0),
                     ),
-                  ],
-                ),
-              );
-            }),
-            Divider(),
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Total de Transferencia'),
-              onChanged: (val) {
-                setState(() {
-                  arqueo.transferencia = int.tryParse(val) ?? 0;
-                });
+                  ),
+                  builder:
+                      (context) => const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CalculadoraWidget(),
+                      ),
+                );
               },
-            ),
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Total de Tarjeta'),
-              onChanged: (val) {
-                setState(() {
-                  arqueo.tarjeta = int.tryParse(val) ?? 0;
-                });
-              },
-            ),
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Caja Inicial'),
-              onChanged: (val) {
-                setState(() {
-                  arqueo.cajaInicial = int.tryParse(val) ?? 0;
-                });
-              },
-            ),
-            SizedBox(height: 20),
-            Text('Total de Efectivo: ${arqueo.totalEfectivo} Gs'),
-            Text('Total de Ventas del Día: ${arqueo.totalVentas} Gs'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await _generarYGuardarPDF();
-              },
-              child: Text('Guardar como PDF'),
-            ),
-            ElevatedButton(
-              onPressed: _compartirPorWhatsApp,
-              child: Text('Compartir por WhatsApp'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await _guardarComoTXT();
-              },
-              child: Text('Guardar como TXT'),
             ),
           ],
         ),
